@@ -1,0 +1,27 @@
+{
+  "name": "mindlesselectron",
+  "version": "1.0.0",
+  "description": "Parses OB links and adds awesomeness",
+  "main": "application.js",
+  "author": "Mitchell",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hipio/OB-MindlessElectron.git"
+  },
+  "scripts": {
+    "release": "standard-version"
+  },
+  "dependencies": {
+    "deasync": "^0.1.9",
+    "html-md": "^3.0.2",
+    "lokijs": "^1.4.2",
+    "node-cron": "^1.1.2",
+    "path": "^0.12.7",
+    "promise": "^7.1.1",
+    "request-promise": "^4.0.0",
+    "slackbots": "^1.0.0",
+    "touch": "^1.0.0",
+    "yargs": "^6.6.0"
+  }
+}

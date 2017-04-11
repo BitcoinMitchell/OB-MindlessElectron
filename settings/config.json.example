@@ -1,0 +1,14 @@
+{
+  "bot_name": "Mindless Electron",
+  "groups": [
+    {
+      "group_name": "OpenBazaar",
+      "group_token": "SLACK_TOKEN"
+    },
+    {
+      "group_name": "Symfony",
+      "group_bot_name": "Mindless Variable",
+      "group_token": "SLACK_TOKEN"
+    }
+  ]
+}
