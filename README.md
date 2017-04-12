@@ -1,6 +1,8 @@
 ﻿Mindless Electron for OpenBazaar Slack
 ========
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/BitcoinMitchell/OB-MindlessElectron.svg)](https://greenkeeper.io/)
+
 OB-MindlessElectron is a bot specially written for the [OpenBazaar Slack team](https://openbazaar.slack.com/).
 
 [![Dependency Status](https://gemnasium.com/badges/github.com/BitcoinMitchell/OB-MindlessElectron.svg)](https://gemnasium.com/github.com/BitcoinMitchell/OB-MindlessElectron)
