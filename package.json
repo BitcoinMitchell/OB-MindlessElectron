@@ -22,6 +22,6 @@
     "request-promise": "^4.0.0",
     "slackbots": "^1.0.0",
     "touch": "^1.0.0",
-    "yargs": "^7.0.2"
+    "yargs": "^8.0.1"
   }
 }
