@@ -64,6 +64,10 @@ module.exports = function(slack, bot, settings, listingsDB) {
         const description = md(profile.shortDescription).replace(/\*\*/g, '*')
           + '\n\n*Moderator*: ' + ((profile.moderator) ? 'Yes' : 'No');
 
+        const avatarHashes = typeof profile.avatarHashes !== 'undefined'
+          ? vendor.avatarHashes
+          : vendor.headerHashes;
+
         resolve({
           icon_emoji: ':ob1:',
           attachments: [{
@@ -71,8 +75,8 @@ module.exports = function(slack, bot, settings, listingsDB) {
             'title': 'User: ' + profile.name,
             'title_link': 'https://openbazaar.com/store/home/' + guid,
             'text': description,
-            'image_url': 'https://gateway.ob1.io/ob/images/' + profile.avatarHashes.small,
-            'thumb_url': 'https://gateway.ob1.io/ob/images/' + profile.avatarHashes.small,
+            'image_url': 'https://gateway.ob1.io/ob/images/' + avatarHashes.small,
+            'thumb_url': 'https://gateway.ob1.io/ob/images/' + avatarHashes.small,
             'footer': 'This post will be removed in ' + settings.post_removal_time_readable + ' minutes.',
             'footer_icon': "https://avatars.slack-edge.com/2016-04-18/35680932023_f9e79dc3f27210589e89_48.png"
           }],
@@ -146,13 +150,17 @@ module.exports = function(slack, bot, settings, listingsDB) {
             });
           }
 
+          const avatarHashes = typeof vendor.avatarHashes !== 'undefined'
+            ? vendor.avatarHashes
+            : vendor.headerHashes;
+
           return resolve({
             icon_emoji: ':ob1:',
             text: '*Price*: ' + price + '\n*Has moderators*: ' + ((listing.moderators.length >= 1) ? 'Yes' : 'No'),
             attachments: [{
               'author_name': vendor.name,
               'author_link': 'https://openbazaar.com/store/' + guid,
-              'author_icon': 'https://gateway.ob1.io/ob/images/' + vendor.avatarHashes.small,
+              'author_icon': 'https://gateway.ob1.io/ob/images/' + avatarHashes.small,
               'mrkdwn_in': ['footer', 'text'],
               'title': item.title,
               'title_link': 'https://openbazaar.com/store/' + guid + '/' + itemHash,
