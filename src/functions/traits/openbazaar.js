@@ -58,7 +58,7 @@ module.exports = function(slack, bot, settings, listingsDB) {
 
       request.get({url: url, json: true, timeout: 2000}).then(function(profile) {
         if (false === profile.success) {
-          outputUserProfileError(profile);
+          return outputUserProfileError(profile);
         }
 
         const description = md(profile.shortDescription).replace(/\*\*/g, '*')
@@ -84,6 +84,15 @@ module.exports = function(slack, bot, settings, listingsDB) {
       });
 
       function outputUserProfileError(err) {
+        if(err.message === 'Error: ESOCKETTIMEDOUT') {
+          return resolve({
+            icon_emoji: ':ob1:',
+            text: 'This user could not be loaded!',
+            channel: channel,
+            username: bot.name,
+          })
+        }
+
         resolve({
           icon_emoji: ':ob1:',
           text: 'Oh oh! Something went wrong.',
@@ -101,25 +110,41 @@ module.exports = function(slack, bot, settings, listingsDB) {
 
   function processItemLink(guid, itemHash, channel) {
     return new Promise(function(resolve, reject) {
-      const url = 'https://gateway.ob1.io/ob/listing/' + guid + '/' + itemHash;
+      const url = 'https://gateway.ob1.io/ob/listing/' + guid + '/' + itemHash + '?usecache=true';
       request.get({url: url, json: true, timeout: 2000}).then(function(body) {
         if (false === body.success) {
-          outputItemError(body);
+          return outputItemError(body);
         }
 
         const listing = body.listing;
         const metadata = listing.metadata;
         const item = listing.item;
 
+        const price_fiat = item.price;
+        const price = parseFloat(price_fiat / 100).toFixed(2) + metadata.pricingCurrency;
+        const item_description = md(item.description).replace(/\*\*/g, '*').replace(/\\_/g, '_');
+
         const url = 'https://gateway.ob1.io/ob/profile/' + guid + '?usecache=true';
         require("request")({url: url, json: true}, function(error, response, vendor) {
           if (error || response.statusCode !== 200) {
-            return reject(error);
+            return resolve({
+              icon_emoji: ':ob1:',
+              text: '*Price*: ' + price,
+              attachments: [{
+                'author_name': listing.vendorID.peerID,
+                'author_link': 'https://openbazaar.com/store/' + guid,
+                'mrkdwn_in': ['footer', 'text'],
+                'title': item.title,
+                'title_link': 'https://openbazaar.com/store/' + guid + '/' + itemHash,
+                'text': item_description,
+                'image_url': 'https://gateway.ob1.io/ob/images/' + item.images.small,
+                'thumb_url': 'https://gateway.ob1.io/ob/images/' + item.images.small,
+                'footer': ':ob1: This post will be removed in ' + settings.post_removal_time_readable + ' minutes.'
+              }],
+              channel: channel,
+              username: bot.name
+            });
           }
-
-          const price_fiat = item.price;
-          const price = parseFloat(price_fiat / 100).toFixed(2) + metadata.pricingCurrency;
-          const item_description = md(item.description).replace(/\*\*/g, '*').replace(/\\_/g, '_');
 
           return resolve({
             icon_emoji: ':ob1:',
@@ -141,19 +166,27 @@ module.exports = function(slack, bot, settings, listingsDB) {
           });
         });
       }).catch(function(err) {
-        console.log(err);
         outputItemError(err);
       });
 
       function outputItemError(err) {
+        if(err.message === 'Error: ESOCKETTIMEDOUT') {
+          return resolve({
+            icon_emoji: ':ob1:',
+            text: 'This listing could not be loaded!',
+            channel: channel,
+            username: bot.name,
+          })
+        }
+
         resolve({
           icon_emoji: ':ob1:',
-          text: 'Oh oh! Something went wrong.',
+          text: 'Oh oh!',
           channel: channel,
           username: bot.name,
           attachments: [{
             'mrkdwn_in': ['footer', 'text'],
-            'text': ((err === 'Invalid query') ? 'This listing could not be found!' : err),
+            'text': 'Something broke',
             'footer': ':ob1: This post will be removed in ' + settings.post_removal_time_readable + ' minutes.'
           }]
         })
