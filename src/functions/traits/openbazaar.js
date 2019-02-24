@@ -5,7 +5,7 @@
  */
 
 module.exports = function(slack, bot, settings, listingsDB) {
-  const md = require('html-md-2'),
+  const mrkdwn = require('html-to-mrkdwn'),
     Promise = require('promise'),
     request = require('request-promise');
 
@@ -61,7 +61,7 @@ module.exports = function(slack, bot, settings, listingsDB) {
           return outputUserProfileError(profile);
         }
 
-        const description = md(profile.shortDescription).replace(/\*\*/g, '*')
+        const description = mrkdwn(profile.shortDescription).text.replace(/\*\*/g, '*')
           + '\n\n*Moderator*: ' + ((profile.moderator) ? 'Yes' : 'No');
 
         const avatarHashes = typeof profile.avatarHashes !== 'undefined'
@@ -88,7 +88,7 @@ module.exports = function(slack, bot, settings, listingsDB) {
       });
 
       function outputUserProfileError(err) {
-        if(err.message === 'Error: ESOCKETTIMEDOUT') {
+        if (err.message === 'Error: ESOCKETTIMEDOUT') {
           return resolve({
             icon_emoji: ':ob1:',
             text: 'This user could not be loaded!',
@@ -124,9 +124,8 @@ module.exports = function(slack, bot, settings, listingsDB) {
         const metadata = listing.metadata;
         const item = listing.item;
 
-        const price_fiat = item.price;
-        const price = parseFloat(price_fiat / 100).toFixed(2) + metadata.pricingCurrency;
-        const item_description = md(item.description).replace(/\*\*/g, '*').replace(/\\_/g, '_');
+        const price = parseFloat(item.price / 100).toFixed(2) + metadata.pricingCurrency;
+        const item_description = mrkdwn(item.description).text.replace(/\*\*/g, '*');
 
         const url = 'https://gateway.ob1.io/ob/profile/' + guid + '?usecache=true';
         require("request")({url: url, json: true}, function(error, response, vendor) {
@@ -178,7 +177,7 @@ module.exports = function(slack, bot, settings, listingsDB) {
       });
 
       function outputItemError(err) {
-        if(err.message === 'Error: ESOCKETTIMEDOUT') {
+        if (err.message === 'Error: ESOCKETTIMEDOUT') {
           return resolve({
             icon_emoji: ':ob1:',
             text: 'This listing could not be loaded!',
