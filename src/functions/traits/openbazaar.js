@@ -129,7 +129,7 @@ module.exports = function(slack, bot, settings, listingsDB) {
           if (error || response.statusCode !== 200) {
             return resolve({
               icon_emoji: ':ob1:',
-              text: '*Price*: ' + price,
+              text: '*Price*: ' + price + '\n*Has moderators*: ' + ((listing.moderators.length >= 1) ? 'Yes' : 'No'),
               attachments: [{
                 'author_name': listing.vendorID.peerID,
                 'author_link': 'https://openbazaar.com/store/' + guid,
@@ -148,7 +148,7 @@ module.exports = function(slack, bot, settings, listingsDB) {
 
           return resolve({
             icon_emoji: ':ob1:',
-            text: '*Price*: ' + price,
+            text: '*Price*: ' + price + '\n*Has moderators*: ' + ((listing.moderators.length >= 1) ? 'Yes' : 'No'),
             attachments: [{
               'author_name': vendor.name,
               'author_link': 'https://openbazaar.com/store/' + guid,
