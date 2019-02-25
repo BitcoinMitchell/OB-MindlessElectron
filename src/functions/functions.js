@@ -12,12 +12,13 @@
  *
  * @param {Settings} settings The settings of the bot
  * @param {SlackBot} bot The created bot class
- * @param {ListingDatabase} listingsDB The listings database
+ * @param {ListingDatabase} database The listings database
  */
-module.exports = function(settings, bot, listingsDB) {
+module.exports = function(settings, bot, database) {
   let functions = {};
-  const slack = require('./traits/slack.js')(bot);
-  const openbazaar = require('./traits/openbazaar.js')(slack, bot, settings, listingsDB);
+
+  const slack = require('./traits/slack.js')(bot),
+    openbazaar = require('./traits/openbazaar.js')(slack, bot, settings, database);
 
   functions = Object.assign(openbazaar, functions);
   functions = Object.assign(slack, functions);

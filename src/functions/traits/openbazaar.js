@@ -4,10 +4,11 @@
  * @module traits
  */
 
-module.exports = function(slack, bot, settings, listingsDB) {
-  const mrkdwn = require('html-to-mrkdwn'),
-    Promise = require('promise'),
-    request = require('request-promise');
+module.exports = function(slack, bot, settings, database) {
+  const Promise = require('promise'),
+    mrkdwn = require('html-to-mrkdwn'),
+    request = require('request-promise'),
+    handle_error = require('./handle_error')(bot, settings);
 
   function parseOBLinks(data) {
     const routeArray = data.text.replace('>', '').replace('<', '').split('ob://')[1].replace(/ /g, '').split('/');
@@ -22,51 +23,50 @@ module.exports = function(slack, bot, settings, listingsDB) {
     }).then(function(botResponse) {
       return bot._api('chat.postMessage', botResponse)
     }).then(function(message) {
-      return listingsDB.insertListing(message).then(function() {
-        console.log('Listing message posted and inserted')
+      return database.insertListing(message).then(function() {
+        winston.info('Listing message posted and inserted')
       });
     }).catch(function(error) {
-      console.log('Error: ');
-      console.log(error)
+      winston.error(error);
     })
   }
 
   function processOBLink(guid, itemHash, channel) {
-    console.log(guid, itemHash, channel);
     return new Promise(function(resolve, reject) {
       if (guid != null && itemHash == null) {
-        processUserLink(guid, channel).then(function(data) {
+        return processUserLink(guid, channel).then(function(data) {
           resolve(data)
         }).catch(function(error) {
           reject(error)
         })
-      } else if (guid != null && itemHash != null) {
-        processItemLink(guid, itemHash, channel).then(function(data) {
-          resolve(data)
-        }).catch(function(error) {
-          reject(error)
-        })
-      } else {
-        reject()
       }
+
+      if (guid != null && itemHash != null) {
+        return processItemLink(guid, itemHash, channel).then(function(data) {
+          resolve(data)
+        }).catch(function(error) {
+          reject(error)
+        })
+      }
+
+      return reject();
     })
   }
 
   function processUserLink(guid, channel) {
     return new Promise(function(resolve) {
       const url = 'https://gateway.ob1.io/ob/profile/' + guid + '?usecache=true';
-
       request.get({url: url, json: true, timeout: 2000}).then(function(profile) {
         if (false === profile.success) {
-          return outputUserProfileError(profile);
+          return resolve(handle_error(channel, profile));
         }
 
         const description = mrkdwn(profile.shortDescription).text.replace(/\*\*/g, '*')
           + '\n\n*Moderator*: ' + ((profile.moderator) ? 'Yes' : 'No');
 
         const avatarHashes = typeof profile.avatarHashes !== 'undefined'
-          ? vendor.avatarHashes
-          : vendor.headerHashes;
+          ? profile.avatarHashes
+          : profile.headerHashes;
 
         resolve({
           icon_emoji: ':ob1:',
@@ -84,40 +84,17 @@ module.exports = function(slack, bot, settings, listingsDB) {
           username: bot.name
         })
       }).catch(function(err) {
-        outputUserProfileError(err);
+        return resolve(handle_error(channel, err));
       });
-
-      function outputUserProfileError(err) {
-        if (err.message === 'Error: ESOCKETTIMEDOUT') {
-          return resolve({
-            icon_emoji: ':ob1:',
-            text: 'This user could not be loaded!',
-            channel: channel,
-            username: bot.name,
-          })
-        }
-
-        resolve({
-          icon_emoji: ':ob1:',
-          text: 'Oh oh! Something went wrong.',
-          channel: channel,
-          username: bot.name,
-          attachments: [{
-            'mrkdwn_in': ['footer', 'text'],
-            'text': ((err === 'Invalid query') ? 'This user could not be found!' : err),
-            'footer': ':ob1: This post will be removed in ' + settings.post_removal_time_readable + ' minutes.'
-          }]
-        })
-      }
     })
   }
 
   function processItemLink(guid, itemHash, channel) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve) {
       const url = 'https://gateway.ob1.io/ob/listing/' + guid + '/' + itemHash + '?usecache=true';
       request.get({url: url, json: true, timeout: 2000}).then(function(body) {
         if (false === body.success) {
-          return outputItemError(body);
+          return resolve(handle_error(channel, body));
         }
 
         const listing = body.listing;
@@ -173,31 +150,8 @@ module.exports = function(slack, bot, settings, listingsDB) {
           });
         });
       }).catch(function(err) {
-        outputItemError(err);
+        return resolve(handle_error(channel, err));
       });
-
-      function outputItemError(err) {
-        if (err.message === 'Error: ESOCKETTIMEDOUT') {
-          return resolve({
-            icon_emoji: ':ob1:',
-            text: 'This listing could not be loaded!',
-            channel: channel,
-            username: bot.name,
-          })
-        }
-
-        resolve({
-          icon_emoji: ':ob1:',
-          text: 'Oh oh!',
-          channel: channel,
-          username: bot.name,
-          attachments: [{
-            'mrkdwn_in': ['footer', 'text'],
-            'text': 'Something broke',
-            'footer': ':ob1: This post will be removed in ' + settings.post_removal_time_readable + ' minutes.'
-          }]
-        })
-      }
     })
   }
 

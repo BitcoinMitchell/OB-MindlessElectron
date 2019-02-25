@@ -1,27 +1,29 @@
-module.exports = function(settings, bot, listingsDB) {
+module.exports = function(settings, bot, database) {
   var cron = require('node-cron');
-  console.log('Cron jobs started');
+  winston.info('Cron jobs started');
 
   cron.schedule('* * * * *', function() {
-    listingsDB.getOldListings(settings.post_removal_time).then(function(items) {
+    database.getOldListings(settings.post_removal_time).then(function(items) {
       if (items.length !== 0) {
-        console.log('Old listings: ' + items.length);
+        winston.info('Old listings: ' + items.length);
 
         for (const i in items) {
-          if (items.hasOwnProperty(i)) {
-            removeListing(items[i]);
+          if (false === items.hasOwnProperty(i)) {
+            continue;
           }
+
+          removeListing(items[i]);
         }
       }
     }).catch(function(err) {
-      console.error(err);
+      winston.error(err);
     });
   });
 
   function removeListing(item) {
     bot._api('chat.delete', {ts: item.ts, channel: item.channel}).then(function() {
-      console.log('Old listing message removed');
-      listingsDB.removeListing(item);
+      winston.info('Old listing message removed');
+      database.removeListing(item);
     });
   }
 };

@@ -1,10 +1,10 @@
-module.exports = function(bot, functions) {
+module.exports = function(bot, functions, group) {
   bot.on('start', function() {
-    console.log('The bot has connected to Slack!');
+    winston.info(bot.name + ' has connected to Slack (' + group.name + ')');
   });
 
   bot.on('end', function() {
-    console.log('The bot got disconnected from Slack!');
+    winston.info(bot.name + ' has disconnected from ' + group.name);
   });
 
   bot.on('message', function(data) {
