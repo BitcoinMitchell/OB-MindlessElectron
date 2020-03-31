@@ -1,7 +1,7 @@
 require('./src/functions/winston');
 
-const arguments = require('./src/arguments.js')();
-const settings = require('./src/settings.js')(arguments);
+const args = require('./src/arguments.js')();
+const settings = require('./src/settings.js')(args);
 const database = require('./src/database/listings.js')(settings);
 
 //-=-=-=-=-=- More includes -=-=-=-=-=-//
