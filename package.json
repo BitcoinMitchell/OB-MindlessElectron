@@ -10,7 +10,7 @@
     "url": "git@github.com:BitcoinMitchell/OB-MindlessElectron.git"
   },
   "dependencies": {
-    "deasync": "^0.1.19",
+    "deasync": "^0.1.20",
     "html-to-mrkdwn": "^3.0.0",
     "insane-openbazaar-api": "^0.2.10",
     "lokijs": "^1.5.8",
